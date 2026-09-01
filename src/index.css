@@ -1,0 +1,49 @@
+:root {
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --color-bg: #faf6f0;
+  --color-surface: #ffffff;
+  --color-surface-hover: #fffdfa;
+  --color-border: #ede3d6;
+  --color-border-hover: #d9b897;
+
+  --color-primary: #b3391b;
+  --color-primary-light: #fbeee9;
+  --color-accent: #c97a2b;
+  --color-accent-light: #fef5ea;
+
+  --color-text-main: #241c18;
+  --color-text-muted: #6b5e56;
+  --color-text-light: #8c7d74;
+
+  --shadow-sm: 0 2px 4px rgba(36, 28, 24, 0.04);
+  --shadow-md: 0 6px 16px rgba(36, 28, 24, 0.06);
+  --shadow-lg: 0 12px 28px rgba(36, 28, 24, 0.09);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
