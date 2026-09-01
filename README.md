@@ -1,20 +1,29 @@
-# Addis Eats — React Menu with Props, Validation & Rendering Patterns
+# Addis Eats — Interactive React Menu (State, Filters & Form Validation)
 
-An extended static menu application for **Addis Eats** built with **React** and **Vite**, featuring component composition, PropTypes validation, default props, conditional rendering with boolean guards, and category filtering with empty state handling.
+An interactive, responsive food ordering application for **Addis Eats** built with **React** and **Vite**, featuring state management, dynamic category filtering, a running order total in Ethiopian Birr (ETB), and a live-validated TeleBirr delivery order form.
 
-## Features
+## Key Features
 
-- **Card Wrapper Component (`Card.jsx`)**: Reusable wrapper accepting and rendering `children`.
-- **Dish Component (`Dish.jsx`)**:
-  - Validated with `PropTypes` (`name`, `price`, `currency`, `spicy`, `category`, `description`).
-  - Default value for `currency` (`'$'`).
-  - Conditional rendering of `🌶️ Spicy` badge using guarded booleans (`Boolean(spicy) && ...`).
-- **Menu Component (`Menu.jsx`)**:
-  - Filter dishes by category.
-  - Informative empty state handling when no matching items exist in a category.
-  - List rendering with stable keys (`dish.id`).
-- **External Data Module (`data.js`)**: Structured menu dataset with `id`, `name`, `price`, `category`, and `spicy` flags.
-- **Interactive Category Filtering**: Category selection pills allowing instant filtering and empty state preview.
+1. **Category Filtering (`CategoryBar.jsx` & `Menu.jsx`)**:
+   - Stateless `CategoryBar` rendering category chips with active highlighting.
+   - Lifted `selectedCategory` state in `Menu` deriving filtered dishes.
+   - Dedicated Empty State view when a category has no dishes.
+
+2. **Dish Quantity & Order Total (`Dish.jsx` & `Menu.jsx`)**:
+   - Local `count` state inside each `Dish` card with increment and decrement controls.
+   - Real-time running order total calculated and displayed in **ETB**.
+
+3. **Controlled TeleBirr Order Form (`OrderForm.jsx`)**:
+   - Managed with **one state object** (`{ name, phone, area }`).
+   - Live TeleBirr phone number validation (`09xxxxxxxx` or `07xxxxxxxx`, 10 digits).
+   - Delivery neighborhood selector for Addis Ababa.
+   - Disabled submit button until the form is completely valid and order total > 0.
+   - Instant order confirmation view upon submission.
+
+4. **Component Architecture & Validation**:
+   - `Card` container component utilizing `props.children`.
+   - Full `PropTypes` validation across all components.
+   - Guarded boolean conditional rendering for spicy badges (`🌶️ Spicy`).
 
 ## Project Structure
 
@@ -25,15 +34,17 @@ module-3/
 ├── vite.config.js
 ├── README.md
 └── src/
-    ├── data.js        # Menu dataset
-    ├── Card.jsx       # Reusable container wrapper using children
-    ├── Dish.jsx       # Dish card with PropTypes, defaults & conditional badge
-    ├── Menu.jsx       # Category filtering, empty state & dish mapping
-    ├── Header.jsx     # Branding Header component
-    ├── App.jsx        # Root component composing Header and Menu
-    ├── App.css        # Layout, components, badges & empty state styling
-    ├── index.css      # Base design tokens, resets & typography
-    └── main.jsx       # Vite React entry point
+    ├── data.js           # Addis Eats menu data with ETB prices
+    ├── Card.jsx          # Reusable wrapper component using children
+    ├── CategoryBar.jsx   # Stateless category filter chips
+    ├── Dish.jsx          # Dish card with count state & Add/counter buttons
+    ├── Menu.jsx          # Lifted category/order state, list & running ETB total
+    ├── OrderForm.jsx     # Controlled TeleBirr delivery form + live validation
+    ├── Header.jsx        # Branding header
+    ├── App.jsx           # Root layout
+    ├── App.css           # Component styles, form layout & theme
+    ├── index.css         # Global resets & CSS custom properties
+    └── main.jsx          # Vite React entry point
 ```
 
 ## Getting Started
@@ -44,7 +55,7 @@ module-3/
 npm install
 ```
 
-### Development Server
+### Run Locally
 
 ```bash
 npm run dev
