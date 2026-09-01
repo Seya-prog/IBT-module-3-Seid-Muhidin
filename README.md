@@ -1,15 +1,20 @@
-# Addis Eats — Static Menu (React + Vite)
+# Addis Eats — React Menu with Props, Validation & Rendering Patterns
 
-A modern, responsive static restaurant menu web application for **Addis Eats**, built with **React** and **Vite** as part of the IBT College React module in-class exercise.
+An extended static menu application for **Addis Eats** built with **React** and **Vite**, featuring component composition, PropTypes validation, default props, conditional rendering with boolean guards, and category filtering with empty state handling.
 
 ## Features
 
-- **Component-Based Architecture**:
-  - `Header`: Displays restaurant branding and introductory tagline.
-  - `Dish`: Reusable presentation card accepting `name` and `price` props (plus category and description).
-  - `App`: Composes the components and maps over a structured menu array using unique `key`s.
-- **Modern Responsive Design**: Grid-based responsive layout with tailored typography and subtle hover micro-interactions.
-- **Fast Build Tooling**: Powered by Vite.
+- **Card Wrapper Component (`Card.jsx`)**: Reusable wrapper accepting and rendering `children`.
+- **Dish Component (`Dish.jsx`)**:
+  - Validated with `PropTypes` (`name`, `price`, `currency`, `spicy`, `category`, `description`).
+  - Default value for `currency` (`'$'`).
+  - Conditional rendering of `🌶️ Spicy` badge using guarded booleans (`Boolean(spicy) && ...`).
+- **Menu Component (`Menu.jsx`)**:
+  - Filter dishes by category.
+  - Informative empty state handling when no matching items exist in a category.
+  - List rendering with stable keys (`dish.id`).
+- **External Data Module (`data.js`)**: Structured menu dataset with `id`, `name`, `price`, `category`, and `spicy` flags.
+- **Interactive Category Filtering**: Category selection pills allowing instant filtering and empty state preview.
 
 ## Project Structure
 
@@ -20,49 +25,33 @@ module-3/
 ├── vite.config.js
 ├── README.md
 └── src/
-    ├── main.jsx       # Application entry point
-    ├── App.jsx        # Root component (dishes array & layout composition)
+    ├── data.js        # Menu dataset
+    ├── Card.jsx       # Reusable container wrapper using children
+    ├── Dish.jsx       # Dish card with PropTypes, defaults & conditional badge
+    ├── Menu.jsx       # Category filtering, empty state & dish mapping
     ├── Header.jsx     # Branding Header component
-    ├── Dish.jsx       # Reusable Dish card component
-    ├── App.css        # Layout & component styling
-    └── index.css      # Base styles, CSS variables & typography
+    ├── App.jsx        # Root component composing Header and Menu
+    ├── App.css        # Layout, components, badges & empty state styling
+    ├── index.css      # Base design tokens, resets & typography
+    └── main.jsx       # Vite React entry point
 ```
 
 ## Getting Started
 
-### Prerequisites
-
-Ensure you have [Node.js](https://nodejs.org/) installed (version 18+ recommended).
-
 ### Installation
-
-1. Clone or download the repository.
-2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-### Running the Development Server
-
-Start the Vite development server:
+### Development Server
 
 ```bash
 npm run dev
 ```
 
-Open the local URL displayed in your terminal (typically `http://localhost:5173`) in your browser.
-
-### Building for Production
-
-To create an optimized production build:
+### Production Build
 
 ```bash
 npm run build
-```
-
-To preview the production build locally:
-
-```bash
-npm run preview
 ```
