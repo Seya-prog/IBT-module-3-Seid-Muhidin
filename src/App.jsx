@@ -1,6 +1,5 @@
 import Header from './Header';
 import Menu from './Menu';
-import { menuData } from './data';
 import './App.css';
 
 export default function App() {
@@ -16,7 +15,7 @@ export default function App() {
           </p>
         </div>
 
-        <Menu dishes={menuData} />
+        <Menu />
       </main>
 
       <footer className="footer">

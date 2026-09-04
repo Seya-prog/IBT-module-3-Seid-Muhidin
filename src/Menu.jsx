@@ -1,31 +1,50 @@
-import { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect, useRef } from 'react';
 import CategoryBar from './CategoryBar';
-import Dish from './Dish';
+import DishList from './DishList';
 import OrderForm from './OrderForm';
+import { loadDishes } from './api';
 
 const CATEGORIES = ['All', 'Meat', 'Vegetarian', 'Appetizers', 'Beverages', 'Desserts'];
 
-export default function Menu({ dishes = [] }) {
-  // Lifted category state
+export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState('All');
-
-  // Lifted order items & running total
+  const [dishes, setDishes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [orderItems, setOrderItems] = useState({});
 
-  // Derived filtered dishes list
-  const filteredDishes =
-    selectedCategory === 'All'
-      ? dishes
-      : dishes.filter(
-          (dish) =>
-            dish.category &&
-            dish.category.toLowerCase() === selectedCategory.toLowerCase()
-        );
+  const searchInputRef = useRef(null);
 
-  // Derived running order total in ETB
+  useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    loadDishes(selectedCategory, { signal: controller.signal })
+      .then((data) => {
+        setDishes(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+        setError(err.message || 'Failed to load menu dishes.');
+        setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedCategory]);
+
   const runningTotal = Object.values(orderItems).reduce((sum, item) => {
-    return sum + (item.price * item.count);
+    return sum + item.price * item.count;
   }, 0);
 
   const totalItemCount = Object.values(orderItems).reduce((sum, item) => {
@@ -59,16 +78,34 @@ export default function Menu({ dishes = [] }) {
     });
   };
 
+  const displayedDishes = searchQuery.trim() === ''
+    ? dishes
+    : dishes.filter(
+        (dish) =>
+          dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (dish.description && dish.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+
   return (
     <section className="menu-section" aria-label="Addis Eats Interactive Menu">
-      {/* Category Bar Chips */}
+      <div className="search-bar-container">
+        <input
+          ref={searchInputRef}
+          type="search"
+          className="form-input search-input"
+          placeholder="🔍 Search dishes by name or ingredients..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Search menu items"
+        />
+      </div>
+
       <CategoryBar
         categories={CATEGORIES}
         selectedCategory={selectedCategory}
-        onSelect={(category) => setSelectedCategory(category)}
+        onSelect={(cat) => setSelectedCategory(cat)}
       />
 
-      {/* Running Order Status Bar */}
       <div className="running-total-bar">
         <div className="running-total-info">
           <span className="running-total-label">Current Order Total:</span>
@@ -81,51 +118,29 @@ export default function Menu({ dishes = [] }) {
         </div>
       </div>
 
-      {/* Dishes List or Empty State */}
-      {filteredDishes.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">🍽️</div>
-          <h3 className="empty-state-title">No Dishes Found</h3>
-          <p className="empty-state-text">
-            There are currently no items available in the &ldquo;{selectedCategory}&rdquo; category.
-          </p>
+      {loading ? (
+        <div className="menu-status-container loading-container" role="status" aria-live="polite">
+          <div className="spinner"></div>
+          <p className="status-message">Loading delicious Addis Eats dishes...</p>
+        </div>
+      ) : error ? (
+        <div className="menu-status-container error-container" role="alert">
+          <div className="error-icon">⚠️</div>
+          <h3 className="error-title">Failed to Load Menu</h3>
+          <p className="error-message">{error}</p>
         </div>
       ) : (
-        <div className="dishes-grid">
-          {filteredDishes.map((dish) => (
-            <Dish
-              key={dish.id}
-              id={dish.id}
-              name={dish.name}
-              price={dish.price}
-              currency="ETB"
-              spicy={dish.spicy}
-              category={dish.category}
-              description={dish.description}
-              onAddDish={handleAddDish}
-              onRemoveDish={handleRemoveDish}
-            />
-          ))}
-        </div>
+        <DishList
+          dishes={displayedDishes}
+          selectedCategory={selectedCategory}
+          onAddDish={handleAddDish}
+          onRemoveDish={handleRemoveDish}
+        />
       )}
 
-      {/* Validated TeleBirr Delivery Form */}
       <div className="order-section-container">
         <OrderForm orderTotal={runningTotal} />
       </div>
     </section>
   );
 }
-
-Menu.propTypes = {
-  dishes: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      name: PropTypes.string.isRequired,
-      price: PropTypes.number.isRequired,
-      spicy: PropTypes.bool,
-      category: PropTypes.string,
-      description: PropTypes.string,
-    })
-  ).isRequired,
-};
