@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import CategoryBar from './CategoryBar';
 import DishList from './DishList';
 import OrderForm from './OrderForm';
-import { loadDishes } from './api';
+import { useFetch } from './hooks/useFetch';
+import { useCart } from './cart/CartProvider';
 
 const CATEGORIES = ['All', 'Meat', 'Vegetarian', 'Appetizers', 'Beverages', 'Desserts'];
 
 export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [dishes, setDishes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [orderItems, setOrderItems] = useState({});
+
+  const { data: dishes, loading, error } = useFetch('/dishes.json');
+  const { total, totalCount } = useCart();
 
   const searchInputRef = useRef(null);
 
@@ -22,72 +22,35 @@ export default function Menu() {
     }
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+  // Memoize filtered & sorted dish list for performance
+  const filteredDishes = useMemo(() => {
+    if (!dishes) return [];
 
-    loadDishes(selectedCategory, { signal: controller.signal })
-      .then((data) => {
-        setDishes(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        setError(err.message || 'Failed to load menu dishes.');
-        setLoading(false);
-      });
+    let result = dishes;
 
-    return () => {
-      controller.abort();
-    };
-  }, [selectedCategory]);
-
-  const runningTotal = Object.values(orderItems).reduce((sum, item) => {
-    return sum + item.price * item.count;
-  }, 0);
-
-  const totalItemCount = Object.values(orderItems).reduce((sum, item) => {
-    return sum + item.count;
-  }, 0);
-
-  const handleAddDish = (dish) => {
-    setOrderItems((prev) => ({
-      ...prev,
-      [dish.id]: {
-        name: dish.name,
-        price: dish.price,
-        count: dish.count,
-      },
-    }));
-  };
-
-  const handleRemoveDish = (dish) => {
-    setOrderItems((prev) => {
-      const updated = { ...prev };
-      if (dish.count <= 0) {
-        delete updated[dish.id];
-      } else {
-        updated[dish.id] = {
-          name: dish.name,
-          price: dish.price,
-          count: dish.count,
-        };
-      }
-      return updated;
-    });
-  };
-
-  const displayedDishes = searchQuery.trim() === ''
-    ? dishes
-    : dishes.filter(
+    if (selectedCategory && selectedCategory.toLowerCase() !== 'all') {
+      result = result.filter(
         (dish) =>
-          dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (dish.description && dish.description.toLowerCase().includes(searchQuery.toLowerCase()))
+          dish.category &&
+          dish.category.toLowerCase() === selectedCategory.toLowerCase()
       );
+    }
+
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (dish) =>
+          dish.name.toLowerCase().includes(q) ||
+          (dish.description && dish.description.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [dishes, selectedCategory, searchQuery]);
 
   return (
     <section className="menu-section" aria-label="Addis Eats Interactive Menu">
+      {/* Auto-focused Search Field */}
       <div className="search-bar-container">
         <input
           ref={searchInputRef}
@@ -100,24 +63,27 @@ export default function Menu() {
         />
       </div>
 
+      {/* Category Bar Chips */}
       <CategoryBar
         categories={CATEGORIES}
         selectedCategory={selectedCategory}
         onSelect={(cat) => setSelectedCategory(cat)}
       />
 
+      {/* Running Order Status Bar */}
       <div className="running-total-bar">
         <div className="running-total-info">
           <span className="running-total-label">Current Order Total:</span>
           <span className="running-total-value">
-            {runningTotal.toLocaleString()} ETB
+            {total.toLocaleString()} ETB
           </span>
           <span className="running-total-count">
-            ({totalItemCount} {totalItemCount === 1 ? 'item' : 'items'})
+            ({totalCount} {totalCount === 1 ? 'item' : 'items'})
           </span>
         </div>
       </div>
 
+      {/* Early Return / Conditional UI for Loading & Error */}
       {loading ? (
         <div className="menu-status-container loading-container" role="status" aria-live="polite">
           <div className="spinner"></div>
@@ -131,15 +97,14 @@ export default function Menu() {
         </div>
       ) : (
         <DishList
-          dishes={displayedDishes}
+          dishes={filteredDishes}
           selectedCategory={selectedCategory}
-          onAddDish={handleAddDish}
-          onRemoveDish={handleRemoveDish}
         />
       )}
 
+      {/* Validated TeleBirr Delivery Form */}
       <div className="order-section-container">
-        <OrderForm orderTotal={runningTotal} />
+        <OrderForm orderTotal={total} />
       </div>
     </section>
   );

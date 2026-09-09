@@ -4,8 +4,6 @@ import Dish from './Dish';
 export default function DishList({
   dishes = [],
   selectedCategory = 'All',
-  onAddDish,
-  onRemoveDish,
 }) {
   if (dishes.length === 0) {
     return (
@@ -31,8 +29,6 @@ export default function DishList({
           spicy={dish.spicy}
           category={dish.category}
           description={dish.description}
-          onAddDish={onAddDish}
-          onRemoveDish={onRemoveDish}
         />
       ))}
     </div>
@@ -51,6 +47,4 @@ DishList.propTypes = {
     })
   ).isRequired,
   selectedCategory: PropTypes.string,
-  onAddDish: PropTypes.func,
-  onRemoveDish: PropTypes.func,
 };

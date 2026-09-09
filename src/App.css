@@ -702,3 +702,32 @@
   color: #b91c1c;
   font-size: 0.95rem;
 }
+
+/* Header Cart Badge */
+.header-cart-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff9f5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.header-cart-icon {
+  font-size: 1.1rem;
+}
+
+.header-cart-divider {
+  opacity: 0.4;
+}
+
+.header-cart-total {
+  color: #f7b05b;
+}

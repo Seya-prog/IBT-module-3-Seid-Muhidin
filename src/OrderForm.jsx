@@ -1,44 +1,38 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useCart } from './cart/CartProvider';
 
-const DELIVERY_AREAS = [
+const ADDIS_NEIGHBORHOODS = [
   'Bole',
   'Kazanchis',
-  'Sarbet',
   'Piazza',
-  'Old Airport',
-  'Gerji',
-  'CMC',
-  'Lebu',
-  'Summit',
+  'Sarbet',
   'Megenagna',
+  'CMC',
+  'Old Airport',
+  'Gotera',
+  'Gerji',
+  'Summit',
 ];
 
-export default function OrderForm({ orderTotal = 0, onOrderSuccess }) {
-  // Controlled fields stored in one state object
+export default function OrderForm({ orderTotal = 0 }) {
+  const { clearCart } = useCart();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     area: '',
   });
 
-  const [touched, setTouched] = useState({
-    name: false,
-    phone: false,
-    area: false,
-  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedOrder, setSubmittedOrder] = useState(null);
 
-  const [orderSubmitted, setOrderSubmitted] = useState(false);
-
-  // Validation logic
-  // Ethiopian TeleBirr format: 09xxxxxxxx or 07xxxxxxxx (10 digits) or +2519xxxxxxxx / +2517xxxxxxxx
-  const cleanPhone = formData.phone.replace(/[\s-]/g, '');
-  const isPhoneValid = /^(?:(?:\+251)|0)[79]\d{8}$/.test(cleanPhone);
+  const isPhoneValid = /^(09|07)\d{8}$/.test(formData.phone.trim());
   const isNameValid = formData.name.trim().length >= 2;
-  const isAreaValid = formData.area.trim().length > 0;
+  const isAreaValid = formData.area !== '';
+  const isTotalValid = orderTotal > 0;
 
-  const isFormValid = isNameValid && isPhoneValid && isAreaValid;
-  const canSubmit = isFormValid && orderTotal > 0;
+  const isFormValid = isNameValid && isPhoneValid && isAreaValid && isTotalValid;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,42 +42,38 @@ export default function OrderForm({ orderTotal = 0, onOrderSuccess }) {
     }));
   };
 
-  const handleBlur = (e) => {
-    const { name } = e.target;
-    setTouched((prev) => ({
-      ...prev,
-      [name]: true,
-    }));
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!isFormValid) return;
 
-    setOrderSubmitted(true);
-    if (onOrderSuccess) {
-      onOrderSuccess({ ...formData, orderTotal });
-    }
+    const newOrder = {
+      ...formData,
+      total: orderTotal,
+      orderNumber: 'AE-' + Math.floor(100000 + Math.random() * 900000),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setSubmittedOrder(newOrder);
+    setIsSubmitted(true);
+    clearCart();
   };
 
   const handleReset = () => {
     setFormData({ name: '', phone: '', area: '' });
-    setTouched({ name: false, phone: false, area: false });
-    setOrderSubmitted(false);
+    setIsSubmitted(false);
+    setSubmittedOrder(null);
   };
 
-  if (orderSubmitted) {
+  if (isSubmitted && submittedOrder) {
     return (
       <div className="order-confirmation" role="alert">
         <div className="confirmation-icon">✓</div>
-        <h3 className="confirmation-title">TeleBirr Order Placed!</h3>
+        <h3 className="confirmation-title">Order Confirmed!</h3>
         <p className="confirmation-subtitle">
-          Thank you, <strong>{formData.name}</strong>. A TeleBirr payment prompt of{' '}
-          <strong>{orderTotal.toLocaleString()} ETB</strong> has been sent to{' '}
-          <strong>{formData.phone}</strong>.
+          Thank you, <strong>{submittedOrder.name}</strong>! Your order <strong>#{submittedOrder.orderNumber}</strong> has been received via TeleBirr.
         </p>
         <p className="confirmation-meta">
-          Delivery destination: <strong>{formData.area}</strong>, Addis Ababa.
+          Delivery to <strong>{submittedOrder.area}</strong> • Total Paid: <strong>{submittedOrder.total.toLocaleString()} ETB</strong>
         </p>
         <button
           type="button"
@@ -99,108 +89,93 @@ export default function OrderForm({ orderTotal = 0, onOrderSuccess }) {
   return (
     <form className="order-form" onSubmit={handleSubmit} noValidate>
       <div className="order-form-header">
-        <h3 className="order-form-title">TeleBirr Instant Delivery</h3>
+        <h3 className="order-form-title">TeleBirr Quick Delivery</h3>
         <p className="order-form-subtitle">
-          Complete your delivery details. Pay securely via TeleBirr.
+          Fast delivery across Addis Ababa. Pay securely upon delivery with TeleBirr.
         </p>
       </div>
 
-      {/* Name Input */}
       <div className="form-group">
         <label htmlFor="customer-name" className="form-label">
           Full Name <span className="required-star">*</span>
         </label>
         <input
           id="customer-name"
-          type="text"
           name="name"
-          className={`form-input ${touched.name && !isNameValid ? 'form-input--error' : ''}`}
-          placeholder="e.g. Abebe Bikila"
+          type="text"
+          className={'form-input ' + (formData.name.trim() !== '' && !isNameValid ? 'form-input--error' : '')}
+          placeholder="e.g. Abebe Kebede"
           value={formData.name}
           onChange={handleChange}
-          onBlur={handleBlur}
           required
         />
-        {touched.name && !isNameValid && (
-          <span className="field-error-message">Please enter a valid full name.</span>
+        {formData.name.trim() !== '' && !isNameValid && (
+          <span className="field-error-message">Please enter at least 2 characters.</span>
         )}
       </div>
 
-      {/* Phone Input with TeleBirr validation */}
       <div className="form-group">
         <div className="form-label-row">
-          <label htmlFor="telebirr-phone" className="form-label">
-            TeleBirr Mobile Number <span className="required-star">*</span>
+          <label htmlFor="customer-phone" className="form-label">
+            TeleBirr Phone Number <span className="required-star">*</span>
           </label>
           <span className="telebirr-pill">telebirr</span>
         </div>
         <input
-          id="telebirr-phone"
-          type="tel"
+          id="customer-phone"
           name="phone"
-          className={`form-input ${touched.phone && !isPhoneValid ? 'form-input--error' : ''}`}
-          placeholder="e.g. 0911223344 or 0712345678"
+          type="tel"
+          className={'form-input ' + (formData.phone.trim() !== '' && !isPhoneValid ? 'form-input--error' : '')}
+          placeholder="09XXXXXXXX or 07XXXXXXXX"
           value={formData.phone}
           onChange={handleChange}
-          onBlur={handleBlur}
+          maxLength={10}
           required
         />
-        {formData.phone && !isPhoneValid ? (
-          <span className="field-error-message">
-            Must be a valid Ethiopian number starting with 09 or 07 (10 digits).
-          </span>
+        {formData.phone.trim() !== '' && !isPhoneValid ? (
+          <span className="field-error-message">Must be a valid 10-digit number starting with 09 or 07.</span>
         ) : (
-          <span className="field-hint">Format: 09xxxxxxxx or 07xxxxxxxx</span>
+          <span className="field-hint">Format: 10 digits starting with 09 or 07</span>
         )}
       </div>
 
-      {/* Delivery Area Dropdown */}
       <div className="form-group">
         <label htmlFor="delivery-area" className="form-label">
-          Delivery Area (Addis Ababa) <span className="required-star">*</span>
+          Delivery Neighborhood <span className="required-star">*</span>
         </label>
         <select
           id="delivery-area"
           name="area"
-          className={`form-input form-select ${touched.area && !isAreaValid ? 'form-input--error' : ''}`}
+          className="form-input form-select"
           value={formData.area}
           onChange={handleChange}
-          onBlur={handleBlur}
           required
         >
           <option value="">Select your neighborhood...</option>
-          {DELIVERY_AREAS.map((loc) => (
-            <option key={loc} value={loc}>
-              {loc}
+          {ADDIS_NEIGHBORHOODS.map((area) => (
+            <option key={area} value={area}>
+              {area}
             </option>
           ))}
         </select>
-        {touched.area && !isAreaValid && (
-          <span className="field-error-message">Please select a delivery area.</span>
-        )}
       </div>
 
-      {/* Summary and Submit Button */}
       <div className="order-form-footer">
         <div className="order-summary-row">
           <span className="summary-label">Order Total:</span>
-          <span className="summary-value">
-            {orderTotal.toLocaleString()} ETB
-          </span>
+          <span className="summary-value">{orderTotal.toLocaleString()} ETB</span>
         </div>
 
         {orderTotal === 0 && (
-          <p className="order-warning-text">
-            Add at least one dish from the menu above to proceed.
-          </p>
+          <p className="order-warning-text">⚠️ Please add at least one dish to your order before submitting.</p>
         )}
 
         <button
           type="submit"
           className="btn-submit-order"
-          disabled={!canSubmit}
+          disabled={!isFormValid}
         >
-          Pay with TeleBirr ({orderTotal.toLocaleString()} ETB)
+          Complete Order ({orderTotal.toLocaleString()} ETB)
         </button>
       </div>
     </form>
@@ -208,6 +183,5 @@ export default function OrderForm({ orderTotal = 0, onOrderSuccess }) {
 }
 
 OrderForm.propTypes = {
-  orderTotal: PropTypes.number.isRequired,
-  onOrderSuccess: PropTypes.func,
+  orderTotal: PropTypes.number,
 };

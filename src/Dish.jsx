@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Card from './Card';
+import { useCart } from './cart/CartProvider';
 
 export default function Dish({
   id,
@@ -10,35 +10,25 @@ export default function Dish({
   spicy = false,
   category = '',
   description = '',
-  onAddDish,
-  onRemoveDish,
 }) {
-  const [count, setCount] = useState(0);
+  const { items, addItem, removeItem } = useCart();
+  const count = items[id]?.count || 0;
 
   const handleIncrement = () => {
-    const nextCount = count + 1;
-    setCount(nextCount);
-    if (onAddDish) {
-      onAddDish({ id, name, price, count: nextCount });
-    }
+    addItem({ id, name, price, category });
   };
 
   const handleDecrement = () => {
-    if (count <= 0) return;
-    const nextCount = count - 1;
-    setCount(nextCount);
-    if (onRemoveDish) {
-      onRemoveDish({ id, name, price, count: nextCount });
-    }
+    removeItem(id);
   };
 
   return (
-    <Card className={`dish-card ${Boolean(spicy) ? 'dish-card--spicy' : ''}`}>
+    <Card className={'dish-card ' + (spicy ? 'dish-card--spicy' : '')}>
       <div className="dish-meta">
         {category ? <span className="dish-category">{category}</span> : <span />}
-        {Boolean(spicy) && (
+        {spicy ? (
           <span className="dish-badge dish-badge-spicy">🌶️ Spicy</span>
-        )}
+        ) : null}
       </div>
 
       <div className="dish-header">
@@ -65,7 +55,7 @@ export default function Dish({
               type="button"
               className="btn-counter btn-counter-dec"
               onClick={handleDecrement}
-              aria-label={`Decrease quantity of ${name}`}
+              aria-label={'Decrease quantity of ' + name}
             >
               −
             </button>
@@ -76,7 +66,7 @@ export default function Dish({
               type="button"
               className="btn-counter btn-counter-inc"
               onClick={handleIncrement}
-              aria-label={`Increase quantity of ${name}`}
+              aria-label={'Increase quantity of ' + name}
             >
               +
             </button>
@@ -88,13 +78,11 @@ export default function Dish({
 }
 
 Dish.propTypes = {
-  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   name: PropTypes.string.isRequired,
   price: PropTypes.number.isRequired,
   currency: PropTypes.string,
   spicy: PropTypes.bool,
   category: PropTypes.string,
   description: PropTypes.string,
-  onAddDish: PropTypes.func,
-  onRemoveDish: PropTypes.func,
 };
