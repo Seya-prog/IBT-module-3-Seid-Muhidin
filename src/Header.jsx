@@ -1,7 +1,8 @@
-import { useCart } from './cart/CartProvider';
+import CartBadge from './CartBadge';
+import { useAuth } from './auth/useAuth';
 
 export default function Header() {
-  const { total, totalCount } = useCart();
+  const { user } = useAuth();
 
   return (
     <header className="header">
@@ -12,13 +13,14 @@ export default function Header() {
           Experience the finest traditional flavors of Addis Ababa, crafted with time-honored recipes and fresh ingredients.
         </p>
 
-        {/* Live Cart Badge in Header */}
-        <div className="header-cart-badge" aria-label="Cart summary">
-          <span className="header-cart-icon">🛒</span>
-          <span className="header-cart-count">{totalCount} {totalCount === 1 ? 'dish' : 'dishes'}</span>
-          <span className="header-cart-divider">•</span>
-          <span className="header-cart-total">{total.toLocaleString()} ETB</span>
-        </div>
+        {user && (
+          <div className="header-user-greeting">
+            Welcome back, <strong>{user.name}</strong>
+          </div>
+        )}
+
+        {/* CartBadge with narrow selector */}
+        <CartBadge />
 
         <div className="header-divider">
           <span className="divider-line"></span>

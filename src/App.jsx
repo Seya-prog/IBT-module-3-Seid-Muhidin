@@ -1,11 +1,11 @@
 import Header from './Header';
 import Menu from './Menu';
-import { CartProvider } from './cart/CartProvider';
+import { AuthProvider } from './auth/AuthProvider';
 import './App.css';
 
 export default function App() {
   return (
-    <CartProvider>
+    <AuthProvider>
       <div className="app-layout">
         <Header />
 
@@ -21,9 +21,9 @@ export default function App() {
         </main>
 
         <footer className="footer">
-          <p>© {new Date().getFullYear()} Addis Eats • Made with React & Vite • TeleBirr Delivery Service</p>
+          <p>© {new Date().getFullYear()} Addis Eats • Made with React, Vite & Zustand • TeleBirr Delivery</p>
         </footer>
       </div>
-    </CartProvider>
+    </AuthProvider>
   );
 }

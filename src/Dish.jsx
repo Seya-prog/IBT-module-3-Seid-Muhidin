@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import Card from './Card';
-import { useCart } from './cart/CartProvider';
+import { useCartStore } from './cart/cartStore';
 
 export default function Dish({
   id,
@@ -11,8 +11,10 @@ export default function Dish({
   category = '',
   description = '',
 }) {
-  const { items, addItem, removeItem } = useCart();
-  const count = items[id]?.count || 0;
+  // Narrow selectors: only re-render when this specific dish's count changes
+  const count = useCartStore((state) => state.items[id]?.count || 0);
+  const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
 
   const handleIncrement = () => {
     addItem({ id, name, price, category });

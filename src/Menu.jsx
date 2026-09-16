@@ -1,9 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import CategoryBar from './CategoryBar';
 import DishList from './DishList';
-import OrderForm from './OrderForm';
+import Checkout from './Checkout';
 import { useFetch } from './hooks/useFetch';
-import { useCart } from './cart/CartProvider';
+import { useCartStore, selectTotal, selectTotalCount } from './cart/cartStore';
 
 const CATEGORIES = ['All', 'Meat', 'Vegetarian', 'Appetizers', 'Beverages', 'Desserts'];
 
@@ -12,7 +12,10 @@ export default function Menu() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: dishes, loading, error } = useFetch('/dishes.json');
-  const { total, totalCount } = useCart();
+  
+  // Narrow selectors: only re-render when total or totalCount change
+  const total = useCartStore(selectTotal);
+  const totalCount = useCartStore(selectTotalCount);
 
   const searchInputRef = useRef(null);
 
@@ -22,7 +25,6 @@ export default function Menu() {
     }
   }, []);
 
-  // Memoize filtered & sorted dish list for performance
   const filteredDishes = useMemo(() => {
     if (!dishes) return [];
 
@@ -50,7 +52,7 @@ export default function Menu() {
 
   return (
     <section className="menu-section" aria-label="Addis Eats Interactive Menu">
-      {/* Auto-focused Search Field */}
+      {/* Search Bar */}
       <div className="search-bar-container">
         <input
           ref={searchInputRef}
@@ -83,7 +85,7 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Early Return / Conditional UI for Loading & Error */}
+      {/* Loading, Error or Dish List */}
       {loading ? (
         <div className="menu-status-container loading-container" role="status" aria-live="polite">
           <div className="spinner"></div>
@@ -102,9 +104,9 @@ export default function Menu() {
         />
       )}
 
-      {/* Validated TeleBirr Delivery Form */}
+      {/* Checkout Panel */}
       <div className="order-section-container">
-        <OrderForm orderTotal={total} />
+        <Checkout />
       </div>
     </section>
   );

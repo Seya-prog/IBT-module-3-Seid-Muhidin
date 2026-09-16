@@ -731,3 +731,11 @@
 .header-cart-total {
   color: #f7b05b;
 }
+
+/* User Greeting */
+.header-user-greeting {
+  font-size: 0.95rem;
+  color: #f7b05b;
+  margin-top: 0.75rem;
+  font-weight: 500;
+}
