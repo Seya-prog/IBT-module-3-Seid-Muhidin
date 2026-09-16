@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import PropTypes from 'prop-types';
 
-export default function CategoryBar({
+function CategoryBarComponent({
   categories = ['All'],
   selectedCategory = 'All',
   onSelect,
@@ -14,7 +15,7 @@ export default function CategoryBar({
             <button
               key={category}
               type="button"
-              className={`category-chip ${isSelected ? 'category-chip--active' : ''}`}
+              className={'category-chip ' + (isSelected ? 'category-chip--active' : '')}
               onClick={() => onSelect && onSelect(category)}
               aria-pressed={isSelected}
             >
@@ -27,8 +28,11 @@ export default function CategoryBar({
   );
 }
 
-CategoryBar.propTypes = {
+CategoryBarComponent.propTypes = {
   categories: PropTypes.arrayOf(PropTypes.string).isRequired,
   selectedCategory: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
 };
+
+export const CategoryBar = memo(CategoryBarComponent);
+export default CategoryBar;

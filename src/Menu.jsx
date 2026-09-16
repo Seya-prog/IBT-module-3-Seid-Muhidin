@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import CategoryBar from './CategoryBar';
 import DishList from './DishList';
-import Checkout from './Checkout';
 import { useFetch } from './hooks/useFetch';
 import { useCartStore, selectTotal, selectTotalCount } from './cart/cartStore';
 
@@ -13,7 +12,6 @@ export default function Menu() {
 
   const { data: dishes, loading, error } = useFetch('/dishes.json');
   
-  // Narrow selectors: only re-render when total or totalCount change
   const total = useCartStore(selectTotal);
   const totalCount = useCartStore(selectTotalCount);
 
@@ -23,6 +21,10 @@ export default function Menu() {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
+  }, []);
+
+  const handleSelectCategory = useCallback((category) => {
+    setSelectedCategory(category);
   }, []);
 
   const filteredDishes = useMemo(() => {
@@ -69,7 +71,7 @@ export default function Menu() {
       <CategoryBar
         categories={CATEGORIES}
         selectedCategory={selectedCategory}
-        onSelect={(cat) => setSelectedCategory(cat)}
+        onSelect={handleSelectCategory}
       />
 
       {/* Running Order Status Bar */}
@@ -103,11 +105,6 @@ export default function Menu() {
           selectedCategory={selectedCategory}
         />
       )}
-
-      {/* Checkout Panel */}
-      <div className="order-section-container">
-        <Checkout />
-      </div>
     </section>
   );
 }
